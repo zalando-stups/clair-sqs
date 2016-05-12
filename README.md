@@ -5,6 +5,17 @@ security vulnerabilities. This repository contains a special distribution of Cla
 trigger the analysis of your container images and only provides protected read access to Clair's
 API.
 
+## Configuration
+
+This Docker container is configured via environment variables that are the following:
+
+* `CLAIR_DATABASE_SOURCE`
+  * The database source definition. For PostgreSQL as described here:
+    [http://www.postgresql.org/docs/9.4/static/libpq-connect.html](http://www.postgresql.org/docs/9.4/static/libpq-connect.html).
+* `CLAIR_API_PAGINATIONKEY`
+  * 32-bit URL-safe base64 key used to encrypt pagination tokens. If one is not provided, it will
+    be generated. Multiple clair instances in the same cluster need the same value.
+
 ## License
 
 The MIT License (MIT) Copyright © 2016 Zalando SE, https://tech.zalando.com
