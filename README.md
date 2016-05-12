@@ -31,6 +31,10 @@ This Docker container is configured via environment variables that are the follo
 * `CLAIR_API_PAGINATIONKEY`
   * 32-bit URL-safe base64 key used to encrypt pagination tokens. If one is not provided, it will
     be generated. Multiple clair instances in the same cluster need the same value.
+* `RECEIVER_QUEUE_URL`
+  * The URL of the SQS queue you want to read "layer push" messages from.
+* `RECEIVER_QUEUE_REGION`
+  * The region of your SQS queue.
 * `SENDER_TOPIC_ARN`
   * The ARN of the SNS topic you want to receive notifications on.
 * `SENDER_TOPIC_REGION`
@@ -55,8 +59,10 @@ Run `clair-sqs`:
     docker run -it --link postgres \
         -p 8080:8080 \
         -p 6060:6060 \
-        -v $HOME/.aws:/.aws \
+        -v $HOME/.aws:/root/.aws \
         -e CLAIR_DATABASE_SOURCE=postgres://172.17.0.2:5432/postgres\?user=postgres\\\&sslmode=disable \
+        -e RECEIVER_QUEUE_URL=https://sqs.eu-central-1.amazonaws.com/1234567890/clair-layers \
+        -e RECEIVER_QUEUE_REGION=eu-central-1 \
         -e SENDER_TOPIC_ARN=arn:aws:sns:eu-central-1:1234567890:clair-notifications \
         -e SENDER_TOPIC_REGION=eu-central-1 \
         clair-sqs
@@ -64,6 +70,13 @@ Run `clair-sqs`:
 Port `8080` provides readonly access to the Clair API and port `6060` provides raw Clair API
 access. For production usage, you want to also specify the `CLAIR_API_PAGINATIONKEY`
 configuration.
+
+Now you can index a Docker image by extracting the layers and pushing the information to SQS:
+
+    tools/index-image.sh \
+        https://sqs.eu-central-1.amazonaws.com/1234567890/clair-layers eu-central-1 \
+        registry.opensource.zalan.do \
+        stups ubuntu 15.10-16
 
 ## License
 

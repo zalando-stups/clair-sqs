@@ -3,15 +3,15 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"io/ioutil"
 	"net/http"
 	"os"
 
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
-	"io/ioutil"
 )
 
 type notificationEnvelope struct {
@@ -34,6 +34,9 @@ func main() {
 	if snsTopicArn == "" || snsTopicRegion == "" || clairUrl == "" {
 		log.Fatal("SENDER_TOPIC_ARN, SENDER_TOPIC_REGION or CLAIR_URL not set")
 	}
+
+	log.Printf("Sender Topic ARN: %v", snsTopicArn)
+	log.Printf("Sender Topic Region: %v", snsTopicRegion)
 
 	svc := sns.New(session.New(&aws.Config{Region: &snsTopicRegion}))
 
