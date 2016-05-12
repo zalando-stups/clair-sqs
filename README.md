@@ -5,6 +5,22 @@ security vulnerabilities. This repository contains a special distribution of Cla
 trigger the analysis of your container images and only provides protected read access to Clair's
 API.
 
+## Concept
+
+The `clair-sqs` container takes "layer pushes" via SQS and provides notifications via SNS (which
+can then again forward the notification to an SQS queue if you like). For that, two sidecars are
+deployed next to Clair:
+
+* `receiver`
+  * The receiver listens on an SQS queue and forwards messages to `POST /v1/layers` in Clair.
+* `sender`
+  * The sender receives notifications from Clair via a local webhook, fetches the notification
+    details and sends those details to an SNS topic.
+
+In addition, `skipper` is added as a sidecar to provide read-only access to Clair's API. This
+allows you to provide all detailed information to your users without exposing the capability to
+insert fake layers.
+
 ## Configuration
 
 This Docker container is configured via environment variables that are the following:
@@ -15,6 +31,39 @@ This Docker container is configured via environment variables that are the follo
 * `CLAIR_API_PAGINATIONKEY`
   * 32-bit URL-safe base64 key used to encrypt pagination tokens. If one is not provided, it will
     be generated. Multiple clair instances in the same cluster need the same value.
+* `SENDER_TOPIC_ARN`
+  * The ARN of the SNS topic you want to receive notifications on.
+* `SENDER_TOPIC_REGION`
+  * The region of your SNS topic.
+
+## Building
+
+    docker build -t clair-sqs .
+
+## Running locally
+
+Run a local PostgreSQL database:
+
+    docker run -d --name postgres postgres:9.4
+
+Figure out the linked IP of PostgreSQL:
+
+    docker run --link postgres ubuntu env | grep POSTGRES_PORT_5432_TCP_ADDR
+
+Run `clair-sqs`:
+
+    docker run -it --link postgres \
+        -p 8080:8080 \
+        -p 6060:6060 \
+        -v $HOME/.aws:/.aws \
+        -e CLAIR_DATABASE_SOURCE=postgres://172.17.0.2:5432/postgres\?user=postgres\\\&sslmode=disable \
+        -e SENDER_TOPIC_ARN=arn:aws:sns:eu-central-1:1234567890:clair-notifications \
+        -e SENDER_TOPIC_REGION=eu-central-1 \
+        clair-sqs
+
+Port `8080` provides readonly access to the Clair API and port `6060` provides raw Clair API
+access. For production usage, you want to also specify the `CLAIR_API_PAGINATIONKEY`
+configuration.
 
 ## License
 

@@ -11,7 +11,7 @@ ADD supervisord.conf /etc/supervisord.conf
 ADD run.sh /run.sh
 
 # add configurations
-ADD clair.conf /etc/clair/config.yaml
+ADD clair.yaml /etc/clair/config.yaml
 ADD skipper.eskip /etc/skipper.eskip
 
 # add skipper

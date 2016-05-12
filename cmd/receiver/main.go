@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
+    fmt.Println("TODO receive")
     for {
-        fmt.Println("TODO receive")
         time.Sleep(5 * time.Second)
     }
 }
