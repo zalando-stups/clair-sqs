@@ -38,7 +38,7 @@ for layer in $layers; do
     aws sqs send-message \
         --queue-url $sqs_queue \
         --message-body \
-        '{"Layer": {"Name": "'$layer'", "ParentName": "'$parent'", "Path": "'https://$registry/v2/$team/$artifact/blobs/$layer'", "Format": "Docker"}}' | jq -r '.MessageId'
+        '{"Layer": {"Name": "'$layer'", "ParentName": "'$parent'", "Path": "'https://$registry/v2/$repository/$artifact/blobs/$layer'", "Format": "Docker"}}' | jq -r '.MessageId'
     if [ $? -ne 0 ]; then
         echo "FAILED"
         exit 4

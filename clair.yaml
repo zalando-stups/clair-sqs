@@ -63,7 +63,7 @@ clair:
     http:
       # Optional endpoint that will receive notifications via POST requests
       # Push to local sender which translates it to a SNS notification.
-      endpoint: http://localhost:7070
+      endpoint: http://localhost:7070/trigger
 
       # Optional PKI configuration
       # If you want to easily generate client certificates and CAs, try the following projects:

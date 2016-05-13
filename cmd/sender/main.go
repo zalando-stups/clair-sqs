@@ -40,7 +40,7 @@ func main() {
 
 	svc := sns.New(session.New(&aws.Config{Region: &snsTopicRegion}))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/trigger", func(w http.ResponseWriter, r *http.Request) {
 		// Clair triggered us, read the notification name
 		decoder := json.NewDecoder(r.Body)
 		var notification notificationEnvelope
