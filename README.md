@@ -21,6 +21,17 @@ In addition, `skipper` is added as a sidecar to provide read-only access to Clai
 allows you to provide all detailed information to your users without exposing the capability to
 insert fake layers.
 
+## Usage
+
+As soon as you have `clair-sqs` running, you can push layers to clair and receive reports about your layers. The message
+format is exactly as described in Clair's documentation for the `/v1/layers` semantic:
+
+* To push layers, send a JSON message to SQS with the same structure as you would send to
+  [POST /v1/layers](https://github.com/coreos/clair/blob/master/api/v1/README.md#post-layers).
+* Each time, a layer was analysed or vulnerabilities might have changed, you will get an SNS notification with a JSON
+  message that is the same as
+  [GET /v1/layers/:name](https://github.com/coreos/clair/blob/master/api/v1/README.md#get-layersname).
+
 ## Configuration
 
 This Docker container is configured via environment variables that are the following:
@@ -34,9 +45,13 @@ This Docker container is configured via environment variables that are the follo
 * `RECEIVER_QUEUE_URL`
   * The URL of the SQS queue you want to read "layer push" messages from.
 * `RECEIVER_QUEUE_REGION`
-  * The region of your SQS queue.
-* `SENDER_TOPIC_ARN`
+  * The region of your SQS queue. (for feedback on new layers)
+* `RECEIVER_TOPIC_ARN`
   * The ARN of the SNS topic you want to receive notifications on.
+* `RECEIVER_TOPIC_REGION`
+  * The region of your SNS topic.
+* `SENDER_TOPIC_ARN`
+  * The ARN of the SNS topic you want to receive notifications on. (for feedback on new CVEs)
 * `SENDER_TOPIC_REGION`
   * The region of your SNS topic.
 
@@ -63,6 +78,8 @@ Run `clair-sqs`:
         -e CLAIR_DATABASE_SOURCE=postgres://172.17.0.2:5432/postgres\?user=postgres\\\&sslmode=disable \
         -e RECEIVER_QUEUE_URL=https://sqs.eu-central-1.amazonaws.com/1234567890/clair-layers \
         -e RECEIVER_QUEUE_REGION=eu-central-1 \
+        -e RECEIVER_TOPIC_ARN=arn:aws:sns:eu-central-1:1234567890:clair-notifications \
+        -e RECEIVER_TOPIC_REGION=eu-central-1 \
         -e SENDER_TOPIC_ARN=arn:aws:sns:eu-central-1:1234567890:clair-notifications \
         -e SENDER_TOPIC_REGION=eu-central-1 \
         clair-sqs
