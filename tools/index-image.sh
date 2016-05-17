@@ -37,6 +37,7 @@ for layer in $layers; do
     echo -n "Sending layer '$layer' with parent '$parent' to SQS...   "
     aws sqs send-message \
         --queue-url $sqs_queue \
+        --region $sqs_region \
         --message-body \
         '{"Layer": {"Name": "'$layer'", "ParentName": "'$parent'", "Path": "'https://$registry/v2/$repository/$artifact/blobs/$layer'", "Format": "Docker"}}' | jq -r '.MessageId'
     if [ $? -ne 0 ]; then
