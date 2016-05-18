@@ -3,15 +3,49 @@ package clair
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
 
-func PushLayer(clairUrl string, json []byte) (err error) {
-	_, err = http.Post(fmt.Sprintf("%v/v1/layers", clairUrl), "application/json", bytes.NewReader(json))
-	// TODO check response status
-	return
+type errorResponse struct {
+	Error struct {
+		Message string
+	}
+}
+
+func tryMessageError(reader io.Reader) error {
+	body, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	var response errorResponse
+	if err = json.Unmarshal(body, &response); err != nil {
+		return err
+	}
+
+	if response.Error.Message != "" {
+		return errors.New(response.Error.Message)
+	}
+
+	return nil
+}
+
+func PushLayer(clairUrl string, json []byte) error {
+    resp, err := http.Post(fmt.Sprintf("%v/v1/layers", clairUrl), "application/json", bytes.NewReader(json))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if err = tryMessageError(resp.Body); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetLayer(clairUrl, layerId string) (json []byte, err error) {
@@ -19,11 +53,18 @@ func GetLayer(clairUrl, layerId string) (json []byte, err error) {
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 
-	// TODO check http response status
-	// TODO check json message for Error response
+	json, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
 
-	return ioutil.ReadAll(resp.Body)
+	if err = tryMessageError(bytes.NewReader(json)); err != nil {
+		return
+	}
+
+	return json, nil
 }
 
 type notificationDetailEnvelope struct {
@@ -54,11 +95,14 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 		if err != nil {
 			return err
 		}
-
-		// TODO check http response status
+		defer details.Body.Close()
 
 		detailsBytes, err := ioutil.ReadAll(details.Body)
 		if err != nil {
+			return err
+		}
+
+		if err = tryMessageError(bytes.NewReader(detailsBytes)); err != nil {
 			return err
 		}
 
@@ -83,8 +127,11 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 	return nil
 }
 
-func DeleteNotification(clairUrl, notificationName string) (err error) {
-	_, err = http.NewRequest("DELETE", fmt.Sprintf("%v/v1/notifications/%v", clairUrl, notificationName), nil)
-	// TODO check response status
-	return
+func DeleteNotification(clairUrl, notificationName string) error {
+    _, err := http.NewRequest("DELETE", fmt.Sprintf("%v/v1/notifications/%v", clairUrl, notificationName), nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

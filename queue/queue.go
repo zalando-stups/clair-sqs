@@ -28,7 +28,7 @@ func ProcessMessages(sqsService *sqs.SQS, sqsQueueUrl string, messageProcessor f
 			err = messageProcessor(*msg.MessageId, *msg.Body)
 
 			if err != nil {
-				log.Printf("Couldn't process message %v: %v", msg.MessageId, err)
+				log.Printf("Couldn't process message %v: %v (message left in queue)", msg.MessageId, err)
 				continue
 			}
 
