@@ -30,11 +30,11 @@ type refresher struct {
 const (
 	defaultRefreshPercentageThreshold = 0.6
 	defaultWarningPercentageThreshold = 0.8
+	retryDelay = 10 * time.Second
 )
 
 var (
-	ErrGettingToken         = errors.New("error getting token from token endpoint")
-	ErrInvalidTokenResponse = errors.New("Invalid token response")
+	ErrGettingToken = errors.New("error getting token from token endpoint")
 )
 
 func NewRefresher(url string, ucp user.CredentialsProvider, ccp client.CredentialsProvider, h *holder) *refresher {
@@ -62,14 +62,7 @@ func (r *refresher) refreshTokens(requests []ManagementRequest) error {
 	return nil
 }
 
-func (r *refresher) refreshToken(tr ManagementRequest) {
-	if err := r.doRefreshToken(tr); err != nil {
-		r.refreshScheduler.scheduleTokenRefresh(tr, 10*time.Second)
-	}
-}
-
 func (r *refresher) doRefreshToken(tr ManagementRequest) error {
-	fmt.Printf("Refreshing token %q ...\n", tr.id)
 	uc, err := r.userCredentialsProvider.Get()
 	if err != nil {
 		return err
@@ -111,7 +104,7 @@ func (r *refresher) doRefreshToken(tr ManagementRequest) error {
 
 	at := new(AccessToken)
 	if err = json.Unmarshal(buf, at); err != nil {
-		return ErrInvalidTokenResponse
+		return fmt.Errorf("Invalid token response: %v", err)
 	}
 
 	at.issuedAt = time.Now().Add(-1 * time.Second)
@@ -119,7 +112,6 @@ func (r *refresher) doRefreshToken(tr ManagementRequest) error {
 	delta := float64(at.ExpiresIn) * r.refreshPercentageThreshold
 	r.refreshScheduler.scheduleTokenRefresh(tr, time.Duration(int64(delta))*time.Second)
 
-	//pretty.Println(at)
 	r.tokenHolder.set(tr.id, at)
 	return nil
 }
@@ -127,4 +119,11 @@ func (r *refresher) doRefreshToken(tr ManagementRequest) error {
 func basicAuth(username, password string) string {
 	auth := username + ":" + password
 	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
+
+// This is the callback function the scheduler will run when the timer expires
+func (r *refresher) refreshToken(tr ManagementRequest) {
+	if err := r.doRefreshToken(tr); err != nil {
+		r.refreshScheduler.scheduleTokenRefresh(tr, retryDelay)
+	}
 }

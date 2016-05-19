@@ -1,0 +1,19 @@
+sudo: false
+
+language: go
+
+go:
+  - 1.6
+
+before_install:
+  - go get ./...
+  - pip install --user codecov
+
+script:
+  - go test -v ./...
+  - go fmt ./...
+  - go list -f '{{if len .TestGoFiles}}"go test -coverprofile={{.Dir}}/.coverprofile {{.ImportPath}}"{{end}}' ./... | xargs -i sh -c {}
+  - gover . coverprofile.txt
+
+after_success:
+  - codecov --file coverprofile.txt

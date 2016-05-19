@@ -2,6 +2,15 @@
 
 ** WARNING - WORKN IN PROGRESS - CONSIDER THIS ALPHA STAGE **
 
+.. image:: https://travis-ci.org/zalando/go-tokens.svg?branch=master
+    :target: https://travis-ci.org/zalando/go-tokens
+
+.. image:: https://codecov.io/github/zalando/go-tokens/coverage.svg?branch=master
+    :target: https://codecov.io/github/zalando/go-tokens?branch=master
+
+.. image:: https://goreportcard.com/badge/github.com/zalando/go-tokens
+    :target: https://goreportcard.com/report/github.com/zalando/go-tokens
+    
 This is a library very similar to [tokens](https://github.com/zalando-stups/tokens) and [python-tokens](https://github.com/zalando-stups/python-tokens).
 
 In a nutshell, you provide the OAuth2 token endpoint and which tokens and scopes to have managed.

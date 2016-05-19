@@ -20,7 +20,7 @@ func TestTokens(t *testing.T) {
 	url := fmt.Sprintf("http://%s", server.Listener.Addr())
 
 	os.Setenv("CREDENTIALS_DIR", "testdata")
-	tr := NewRequest("test", "password", "uid", "team")
+	tr := NewPasswordRequest("test", "uid", "team")
 	tks, err := Manage(
 		url,
 		[]ManagementRequest{tr},
