@@ -35,7 +35,7 @@ func tryMessageError(reader io.Reader) error {
 }
 
 func PushLayer(clairUrl string, json []byte) error {
-    resp, err := http.Post(fmt.Sprintf("%v/v1/layers", clairUrl), "application/json", bytes.NewReader(json))
+	resp, err := http.Post(fmt.Sprintf("%v/v1/layers", clairUrl), "application/json", bytes.NewReader(json))
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 }
 
 func DeleteNotification(clairUrl, notificationName string) error {
-    _, err := http.NewRequest("DELETE", fmt.Sprintf("%v/v1/notifications/%v", clairUrl, notificationName), nil)
+	_, err := http.NewRequest("DELETE", fmt.Sprintf("%v/v1/notifications/%v", clairUrl, notificationName), nil)
 	if err != nil {
 		return err
 	}

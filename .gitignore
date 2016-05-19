@@ -38,3 +38,7 @@ tags
 
 ### InetlliJ
 /.idea
+
+### mint&berry
+/client.json
+/user.json

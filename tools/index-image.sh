@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -z "$6" ]; then
-    echo "Usage: $0 <sqs-queue> <sqs-region> <registry> <repository> <artifact> <version>" >&2
+    echo "Usage: $0 <sqs-queue> <sqs-region> <registry> <repository> <artifact> <version> [auth]" >&2
     exit 1
 fi
 
@@ -11,8 +11,13 @@ registry=$3
 repository=$4
 artifact=$5
 version=$6
+auth=$7
 
-alias curl='curl -s'
+if [ -z "$auth" ]; then
+    alias curl="curl -s"
+else
+    alias curl="curl -s -u '$auth'"
+fi
 
 schema="$(curl "https://$registry/v2/$repository/$artifact/manifests/$version" | jq -r '.schemaVersion')"
 if [ -z "$schema" ]; then

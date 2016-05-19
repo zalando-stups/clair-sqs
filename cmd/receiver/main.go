@@ -13,15 +13,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/zalando/clair-sqs/queue"
+	"github.com/zalando/go-tokens/tokens"
 )
 
 type pushMessage struct {
 	Layer struct {
-		Name          string
-		Path          string
-		Authorization string
-		ParentName    string
-		Format        string
+		Name       string
+		Path       string
+		Headers    map[string]string
+		ParentName string
+		Format     string
 	}
 }
 
@@ -31,6 +32,7 @@ func main() {
 	snsTopicArn := os.Getenv("RECEIVER_TOPIC_ARN")
 	snsTopicRegion := os.Getenv("RECEIVER_TOPIC_REGION")
 	clairUrl := os.Getenv("CLAIR_URL")
+	accessTokenUrl := os.Getenv("ACCESS_TOKEN_URL")
 
 	if sqsQueueUrl == "" || sqsQueueRegion == "" {
 		log.Fatal("RECEIVER_QUEUE_URL or RECEIVER_QUEUE_REGION not set")
@@ -54,14 +56,45 @@ func main() {
 
 	snsService := sns.New(session.New(&aws.Config{Region: &snsTopicRegion}))
 
+	log.Printf("Receiver Access Token URL: %v", accessTokenUrl)
+	reqs := []tokens.ManagementRequest{
+		tokens.NewRequest("fetch-layer", "password", "uid"),
+	}
+	tokenManager, err := tokens.Manage(accessTokenUrl, reqs)
+	if err != nil && err != tokens.ErrMissingUrl {
+		// if tokens.ErrMissingUrl, then tokenManage is nil and can be tested (feature off)
+		panic(err)
+	}
+
 	queue.ProcessMessages(sqsService, sqsQueueUrl, func(msgid, msg string) error {
 		var jsonMessage pushMessage
+
 		if err := json.Unmarshal([]byte(msg), &jsonMessage); err != nil {
 			return err
 		}
+		if jsonMessage.Layer.Headers == nil {
+			jsonMessage.Layer.Headers = make(map[string]string)
+		}
+
+		// optional: enrich mesage with authorization token
+		var jsonMessageBytes []byte
+		if tokenManager != nil {
+			token, err := tokenManager.Get("fetch-layer")
+			if err != nil {
+				return err
+			}
+			jsonMessage.Layer.Headers["Authorization"] = "Bearer " + token.Token
+			log.Printf("Enriched messages with headers: %v", jsonMessage.Layer.Headers)
+			jsonMessageBytes, err = json.Marshal(jsonMessage)
+			if err != nil {
+				return err
+			}
+		} else {
+			jsonMessageBytes = []byte(msg)
+		}
 
 		// forward to Clair
-		if err := clair.PushLayer(clairUrl, []byte(msg)); err != nil {
+		if err := clair.PushLayer(clairUrl, jsonMessageBytes); err != nil {
 			return err
 		}
 
