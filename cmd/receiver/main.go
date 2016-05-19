@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/zalando/clair-sqs/queue"
-	"github.com/zalando/go-tokens"
+	"github.com/zalando/go-tokens/tokens"
 )
 
 type pushMessage struct {
@@ -61,7 +61,7 @@ func main() {
 		tokens.NewPasswordRequest("fetch-layer", "uid"),
 	}
 	tokenManager, err := tokens.Manage(accessTokenUrl, reqs)
-	if err != nil && err != tokens.ErrMissingUrl {
+	if err != nil && err != tokens.ErrMissingURL {
 		// if tokens.ErrMissingUrl, then tokenManage is nil and can be tested (feature off)
 		panic(err)
 	}
