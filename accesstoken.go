@@ -1,18 +1,9 @@
 package tokens
 
 import (
+	"fmt"
 	"time"
 )
-
-/*
-{
-	"access_token":"header.claims.sig",
-	"token_type":"Bearer",
-	"expires_in":28800,
-	"scope":"uid",
-	"realm":"/services"
-}
-*/
 
 type AccessToken struct {
 	Token      string `json:"access_token"`
@@ -23,4 +14,8 @@ type AccessToken struct {
 
 func (at *AccessToken) Expired() bool {
 	return at.validUntil.Before(time.Now())
+}
+
+func (at *AccessToken) String() string {
+	return fmt.Sprintf("%s expires in %d second(s)", at.Token, at.ExpiresIn)
 }

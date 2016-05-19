@@ -10,7 +10,13 @@ type ManagementRequest struct {
 	scopes    []string
 }
 
-func NewRequest(id string, grantType string, scopes ...string) ManagementRequest {
+const passwordGrantType = "password"
+
+func NewPasswordRequest(id string, scopes ...string) ManagementRequest {
+	return newRequest(id, passwordGrantType, scopes...)
+}
+
+func newRequest(id string, grantType string, scopes ...string) ManagementRequest {
 	t := ManagementRequest{
 		id:        id,
 		grantType: grantType,
@@ -19,7 +25,7 @@ func NewRequest(id string, grantType string, scopes ...string) ManagementRequest
 
 	for _, scope := range scopes {
 		if len(scope) < 1 {
-			log.Println("Empty scope in token request dropped")
+			log.Printf("Empty scope in management request %q dropped\n", id)
 		} else {
 			t.scopes = append(t.scopes, scope)
 		}

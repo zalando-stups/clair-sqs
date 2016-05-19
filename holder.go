@@ -1,5 +1,7 @@
 package tokens
 
+import "fmt"
+
 type holder struct {
 	operationChannel chan *operation
 	quitChannel      chan struct{}
@@ -49,7 +51,7 @@ func doOp(m map[string]*AccessToken, o *operation) *AccessToken {
 	case get:
 		return m[o.tokenId]
 	}
-	return nil
+	panic(fmt.Errorf("Unknown operation: %v", o.op))
 }
 
 func (h *holder) get(tokenId string) *AccessToken {
@@ -62,4 +64,8 @@ func (h *holder) set(tokenId string, token *AccessToken) *AccessToken {
 	response := make(chan *AccessToken)
 	h.operationChannel <- &operation{tokenId: tokenId, accessToken: token, response: response, op: set}
 	return <-response
+}
+
+func (h *holder) shutdown() {
+	close(h.quitChannel)
 }
