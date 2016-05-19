@@ -21,6 +21,8 @@ In addition, `skipper` is added as a sidecar to provide read-only access to Clai
 allows you to provide all detailed information to your users without exposing the capability to
 insert fake layers.
 
+![Architecture Visualization](architecture.svg)
+
 ## Usage
 
 As soon as you have `clair-sqs` running, you can push layers to clair and receive reports about your layers. The message
