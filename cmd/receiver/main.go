@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/zalando/clair-sqs/queue"
-	"github.com/zalando/go-tokens/tokens"
+	"github.com/zalando/go-tokens"
 )
 
 type pushMessage struct {
@@ -58,7 +58,7 @@ func main() {
 
 	log.Printf("Receiver Access Token URL: %v", accessTokenUrl)
 	reqs := []tokens.ManagementRequest{
-		tokens.NewRequest("fetch-layer", "password", "uid"),
+		tokens.NewPasswordRequest("fetch-layer", "uid"),
 	}
 	tokenManager, err := tokens.Manage(accessTokenUrl, reqs)
 	if err != nil && err != tokens.ErrMissingUrl {
@@ -84,7 +84,6 @@ func main() {
 				return err
 			}
 			jsonMessage.Layer.Headers["Authorization"] = "Bearer " + token.Token
-			log.Printf("Enriched messages with headers: %v", jsonMessage.Layer.Headers)
 			jsonMessageBytes, err = json.Marshal(jsonMessage)
 			if err != nil {
 				return err

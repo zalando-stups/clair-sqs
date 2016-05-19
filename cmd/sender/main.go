@@ -48,6 +48,11 @@ func main() {
 		err = clair.ProcessNotification(clairUrl, notification.Notification.Name, func(newLayers []string, oldLayers []string) error {
 			layers := append(newLayers, oldLayers...)
 
+			if len(layers) == 0 {
+				log.Printf("Got notification %v but without layer updates. (New: %v, Old: %v)", notification.Notification.Name, newLayers, oldLayers)
+				return nil
+			}
+
 			for _, layer := range layers {
 				// send the raw notification details to the SNS notifcation
 				details, err := clair.GetLayer(clairUrl, layer)
@@ -59,7 +64,7 @@ func main() {
 					return err
 				}
 
-				log.Printf("New notification %v page forwarded to %v", notification.Notification.Name, snsTopicArn)
+				log.Printf("Layer update send for %v from notification %v.", layer, notification.Notification.Name)
 			}
 
 			return nil
@@ -74,6 +79,8 @@ func main() {
 			log.Printf("Couldn't delete notification %v after it was processed: %v", notification.Notification.Name, err)
 			return
 		}
+
+		log.Printf("Processed notification %v.", notification.Notification.Name)
 	})
 
 	log.Fatal(http.ListenAndServe(":7070", nil))

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -71,9 +72,19 @@ type notificationDetailEnvelope struct {
 	Notification struct {
 		NextPage string
 		New      struct {
+			Vulnerability struct {
+				Name          string
+				NamespaceName string
+				Severity      string
+			}
 			LayersIntroducingVulnerability []string
 		}
 		Old struct {
+			Vulnerability struct {
+				Name          string
+				NamespaceName string
+				Severity      string
+			}
 			LayersIntroducingVulnerability []string
 		}
 	}
@@ -91,6 +102,7 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 			pageUrl = fmt.Sprintf("%v?limit=%v&page=%v", notificationUrl, 10, page)
 		}
 
+		log.Printf("Fetching notification from %v.", pageUrl)
 		details, err := http.Get(pageUrl)
 		if err != nil {
 			return err
@@ -112,17 +124,22 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 		}
 
 		// call the notification page processor
+		log.Printf("Processing notification with CVEs; New: %v/%v/%v Old: %v/%v/%v",
+			detailsJson.Notification.New.Vulnerability.Name, detailsJson.Notification.New.Vulnerability.NamespaceName, detailsJson.Notification.New.Vulnerability.Severity,
+			detailsJson.Notification.Old.Vulnerability.Name, detailsJson.Notification.Old.Vulnerability.NamespaceName, detailsJson.Notification.Old.Vulnerability.Severity)
 		if err = pageProcessor(detailsJson.Notification.New.LayersIntroducingVulnerability, detailsJson.Notification.Old.LayersIntroducingVulnerability); err != nil {
 			return err
 		}
 
 		// another page to process?
+		log.Printf("NextPage: %v", detailsJson.Notification.NextPage)
 		if detailsJson.Notification.NextPage != "" {
 			page = detailsJson.Notification.NextPage
 		} else {
 			break
 		}
 	}
+	log.Printf("Read all pages.")
 
 	return nil
 }
