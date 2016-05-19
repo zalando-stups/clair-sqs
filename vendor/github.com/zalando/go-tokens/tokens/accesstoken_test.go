@@ -8,12 +8,12 @@ import (
 func TestAccessToken(t *testing.T) {
 	for _, test := range []struct {
 		validUntil time.Time
-		want bool
+		want       bool
 	}{
 		{time.Now().Add(8 * time.Hour), false},
 		{time.Now().Add(-10 * time.Second), true},
 	} {
-		at := &AccessToken{Token:"foo", validUntil: test.validUntil}
+		at := &AccessToken{Token: "foo", validUntil: test.validUntil}
 		got := at.Expired()
 		if got != test.want {
 			t.Errorf("Unexpected expiration status. Wanted %v, got %v\n", test.want, got)
@@ -23,9 +23,9 @@ func TestAccessToken(t *testing.T) {
 
 func TestStringer(t *testing.T) {
 	for _, test := range []struct {
-		id string
+		id         string
 		expiration int
-		want string
+		want       string
 	}{
 		{"foo", 0, "foo expires in 0 second(s)"},
 		{"bar", 0, "bar expires in 0 second(s)"},

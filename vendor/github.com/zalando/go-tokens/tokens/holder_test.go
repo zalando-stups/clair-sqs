@@ -5,7 +5,7 @@ import (
 )
 
 func TestCaching(t *testing.T) {
-	holder := NewHolder()
+	holder := newHolder()
 	foo := &AccessToken{Token: "foo", ExpiresIn: 42}
 	bar := &AccessToken{Token: "bar", ExpiresIn: 0}
 
@@ -35,7 +35,7 @@ func TestCaching(t *testing.T) {
 func TestPanic(t *testing.T) {
 	defer func() {
 		r := recover()
-		err,ok := r.(error)
+		err, ok := r.(error)
 		if !ok {
 			t.Error("Panic didn't contain an error")
 		}

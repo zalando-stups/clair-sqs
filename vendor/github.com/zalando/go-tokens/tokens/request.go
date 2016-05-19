@@ -4,6 +4,7 @@ import (
 	"log"
 )
 
+// ManagementRequest holds data for named token requests that can be passed to the token manager
 type ManagementRequest struct {
 	id        string
 	grantType string
@@ -12,6 +13,8 @@ type ManagementRequest struct {
 
 const passwordGrantType = "password"
 
+// NewPasswordRequest returns a named token request which uses the specific password grant type.
+// It accepts any amount of scopes
 func NewPasswordRequest(id string, scopes ...string) ManagementRequest {
 	return newRequest(id, passwordGrantType, scopes...)
 }
