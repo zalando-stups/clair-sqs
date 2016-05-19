@@ -9,6 +9,8 @@ type jsonFileUserCredentialsProvider struct {
 	fileName string
 }
 
+// NewJSONFileUserCredentialsProvider returns a user.CredentialsProvider that reads both username and
+// password from a JSON file stored in the filesystem
 func NewJSONFileUserCredentialsProvider(fileName string) CredentialsProvider {
 	return &jsonFileUserCredentialsProvider{fileName}
 }

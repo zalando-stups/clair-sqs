@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func ExampleTokens() {
+func ExampleManage() {
 	os.Setenv("CREDENTIALS_DIR", "testdata")
 	handler := func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)

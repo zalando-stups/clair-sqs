@@ -1,6 +1,6 @@
-# Golang Tokens Library
-
-** WARNING - WORKN IN PROGRESS - CONSIDER THIS ALPHA STAGE **
+=================
+Go Tokens Library
+=================
 
 .. image:: https://travis-ci.org/zalando/go-tokens.svg?branch=master
     :target: https://travis-ci.org/zalando/go-tokens
@@ -10,20 +10,27 @@
 
 .. image:: https://goreportcard.com/badge/github.com/zalando/go-tokens
     :target: https://goreportcard.com/report/github.com/zalando/go-tokens
-    
-This is a library very similar to [tokens](https://github.com/zalando-stups/tokens) and [python-tokens](https://github.com/zalando-stups/python-tokens).
+
+.. image:: https://godoc.org/github.com/zalando/go-tokens?status.svg
+    :target: https://godoc.org/github.com/zalando/go-tokens
+
+This is a library very similar to `tokens`_ and `python-tokens`_.
 
 In a nutshell, you provide the OAuth2 token endpoint and which tokens and scopes to have managed.
  
 The library will make sure that the managed tokens are always valid by refreshing them before they expire.
 
-## Users Guide
+Users Guide
+===========
 
 The library will fetch credentials from JSON files (client.json and user.json) from the folder defined in the `CREDENTIALS_DIR` environment variable.
 
-The threshold for refresh is around 60% of the expiration time.
+The default threshold for refresh is around 60% of the expiration time.
 
-## Example
+Example
+=======
+
+.. code-block:: go
 
 	url := "https://example.com/oauth2/access_token"
 	// You can manage multiple tokens with different scopes
@@ -46,3 +53,6 @@ The threshold for refresh is around 60% of the expiration time.
 			// Do something with accessToken
 		}
 	}
+
+.. _tokens: https://github.com/zalando-stups/tokens
+.. _python-tokens: https://github.com/zalando-stups/python-tokens

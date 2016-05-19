@@ -16,12 +16,12 @@ const (
 
 type operation struct {
 	op          operationEnum
-	tokenId     string
+	tokenID     string
 	accessToken *AccessToken
 	response    chan *AccessToken
 }
 
-func NewHolder() *holder {
+func newHolder() *holder {
 	req := make(chan *operation)
 	quit := make(chan struct{})
 
@@ -45,24 +45,24 @@ func NewHolder() *holder {
 func doOp(m map[string]*AccessToken, o *operation) *AccessToken {
 	switch o.op {
 	case set:
-		old := m[o.tokenId]
-		m[o.tokenId] = o.accessToken
+		old := m[o.tokenID]
+		m[o.tokenID] = o.accessToken
 		return old
 	case get:
-		return m[o.tokenId]
+		return m[o.tokenID]
 	}
 	panic(fmt.Errorf("Unknown operation: %v", o.op))
 }
 
-func (h *holder) get(tokenId string) *AccessToken {
+func (h *holder) get(tokenID string) *AccessToken {
 	response := make(chan *AccessToken)
-	h.operationChannel <- &operation{tokenId: tokenId, response: response, op: get}
+	h.operationChannel <- &operation{tokenID: tokenID, response: response, op: get}
 	return <-response
 }
 
-func (h *holder) set(tokenId string, token *AccessToken) *AccessToken {
+func (h *holder) set(tokenID string, token *AccessToken) *AccessToken {
 	response := make(chan *AccessToken)
-	h.operationChannel <- &operation{tokenId: tokenId, accessToken: token, response: response, op: set}
+	h.operationChannel <- &operation{tokenID: tokenID, accessToken: token, response: response, op: set}
 	return <-response
 }
 

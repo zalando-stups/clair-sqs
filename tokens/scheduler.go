@@ -24,7 +24,7 @@ type (
 
 var runner = time.AfterFunc
 
-func NewScheduler(callback refreshCallback) *scheduler {
+func newScheduler(callback refreshCallback) *scheduler {
 	req := make(chan *refreshRequest)
 	quit := make(chan struct{})
 	s := &scheduler{req, quit, callback}
@@ -58,6 +58,6 @@ func (s *scheduler) scheduleTokenRefresh(mr ManagementRequest, d time.Duration) 
 	return <-e
 }
 
-func (s *scheduler) Stop() {
+func (s *scheduler) stop() {
 	close(s.quit)
 }

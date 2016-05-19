@@ -7,7 +7,7 @@ import (
 
 func TestScheduling(t *testing.T) {
 	var at *AccessToken
-	s := NewScheduler(func(mr ManagementRequest) {
+	s := newScheduler(func(mr ManagementRequest) {
 		at = &AccessToken{Token: "foo", ExpiresIn: 42}
 	})
 
@@ -29,12 +29,12 @@ func TestScheduling(t *testing.T) {
 		t.Error("Wrong token received from callback")
 	}
 
-	s.Stop()
+	s.stop()
 }
 
 func TestRescheduleFailure(t *testing.T) {
 	var at *AccessToken
-	s := NewScheduler(func(mr ManagementRequest) {
+	s := newScheduler(func(mr ManagementRequest) {
 		at = &AccessToken{Token: "foo", ExpiresIn: 42}
 	})
 

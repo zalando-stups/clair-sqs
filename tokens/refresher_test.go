@@ -19,8 +19,8 @@ func TestRefresher(t *testing.T) {
 	defer server.Close()
 
 	url := fmt.Sprintf("http://%s", server.Listener.Addr())
-	th := NewHolder()
-	r := NewRefresher(
+	th := newHolder()
+	r := newRefresher(
 		url,
 		user.NewJSONFileUserCredentialsProvider("testdata/user.json"),
 		client.NewJSONFileClientCredentialsProvider("testdata/client.json"),
@@ -38,11 +38,11 @@ func TestRefresher(t *testing.T) {
 	}
 
 	if at.Token != "header.claims.sig" {
-		t.Error(`Invalid token. Wanted "header.claims.sig", got %q`, at.Token)
+		t.Errorf(`Invalid token. Wanted "header.claims.sig", got %q`+"\n", at.Token)
 	}
 
 	if at.ExpiresIn != 4 {
-		t.Error(`Invalid expiration time. Wanted 4, got %d`, at.ExpiresIn)
+		t.Errorf(`Invalid expiration time. Wanted 4, got %d`+"\n", at.ExpiresIn)
 	}
 }
 
@@ -55,34 +55,34 @@ func TestRefresherFailure(t *testing.T) {
 	defer server.Close()
 
 	url := fmt.Sprintf("http://%s", server.Listener.Addr())
-	th := NewHolder()
+	th := newHolder()
 	for _, test := range []struct {
-		u string
+		u   string
 		ucp user.CredentialsProvider
 		ccp client.CredentialsProvider
 	}{
 		{
-			u: url,
+			u:   url,
 			ucp: user.NewJSONFileUserCredentialsProvider("testdata/user.json"),
 			ccp: client.NewJSONFileClientCredentialsProvider("testdata/client.json"),
 		},
 		{
-			u: url,
+			u:   url,
 			ucp: user.NewJSONFileUserCredentialsProvider("missing-file.json"),
 			ccp: client.NewJSONFileClientCredentialsProvider("testdata/client.json"),
 		},
 		{
-			u: url,
+			u:   url,
 			ucp: user.NewJSONFileUserCredentialsProvider("testdata/user.json"),
 			ccp: client.NewJSONFileClientCredentialsProvider("missing-file.json"),
 		},
 		{
-			u: "http://192.168.0.%31/",
+			u:   "http://192.168.0.%31/",
 			ucp: user.NewJSONFileUserCredentialsProvider("testdata/user.json"),
 			ccp: client.NewJSONFileClientCredentialsProvider("testdata/client.json"),
 		},
 	} {
-		r := NewRefresher(test.u, test.ucp, test.ccp, th)
+		r := newRefresher(test.u, test.ucp, test.ccp, th)
 
 		err := r.refreshTokens([]ManagementRequest{NewPasswordRequest("test", "uid", "team")})
 		if err == nil {
