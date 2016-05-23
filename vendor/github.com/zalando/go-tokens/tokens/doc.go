@@ -9,15 +9,16 @@ Create a new token manager with the Manage() function
 
 	tokenManager := Manage("http://oauth-endpoint", mgmtRequests)
 
-This creates a new tokenManager which will obtain OAuth tokens from the http://oauth-endpoint
+This creates a new Manager which will obtain OAuth tokens from the http://oauth-endpoint
 
 You can set some options for the manager with the extra variadic argument, or later, after
-getting the tokenManager instance. The available options are:
+getting the Manager instance. The available options are:
 
 	RefreshPercentageThreshold(float64)
 	WarningPercentageThreshold(float64)
 
-The warning threshold should be higher than the refresh threshold
+The warning threshold should be higher than the refresh threshold. The default values for
+these options are 60% (0.60) for the refresh threshold and 80% (0.80) for the warning threshold.
 
 They can be used immediately when the token manager is created
 
