@@ -25,13 +25,16 @@ insert fake layers.
 
 ## Usage
 
-As soon as you have `clair-sqs` running, you can push layers to clair and receive reports about your layers. The message
-format is exactly as described in Clair's documentation for the `/v1/layers` semantic:
+As soon as you have `clair-sqs` running, you can push layers to clair and receive reports about
+your layers. The message format is exactly as described in Clair's documentation for the
+`/v1/layers` semantic:
 
 * To push layers, send a JSON message to SQS with the same structure as you would send to
-  [POST /v1/layers](https://github.com/coreos/clair/blob/master/api/v1/README.md#post-layers).
-* Each time, a layer was analysed or vulnerabilities might have changed, you will get an SNS notification with a JSON
-  message that is the same as
+  [POST /v1/layers](https://github.com/coreos/clair/blob/master/api/v1/README.md#post-layers). You
+  can also batch layers by sending the same JSON wrapped into a JSON list as a message. This also
+  helps with ordering of the layers so that indexing is faster.
+* Each time, a layer was analysed or vulnerabilities might have changed, you will get an SNS
+  notification with a JSON message that is the same as
   [GET /v1/layers/:name](https://github.com/coreos/clair/blob/master/api/v1/README.md#get-layersname).
 
 ## Configuration

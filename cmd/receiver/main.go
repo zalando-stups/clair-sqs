@@ -67,46 +67,59 @@ func main() {
 	}
 
 	queue.ProcessMessages(sqsService, sqsQueueUrl, func(msgid, msg string) error {
-		var jsonMessage pushMessage
+		var jsonMessages []pushMessage
 
-		if err := json.Unmarshal([]byte(msg), &jsonMessage); err != nil {
-			return err
-		}
-		if jsonMessage.Layer.Headers == nil {
-			jsonMessage.Layer.Headers = make(map[string]string)
-		}
-
-		// optional: enrich mesage with authorization token
-		var jsonMessageBytes []byte
-		if tokenManager != nil {
-			token, err := tokenManager.Get("fetch-layer")
-			if err != nil {
-				return err
-			}
-			jsonMessage.Layer.Headers["Authorization"] = "Bearer " + token.Token
-			jsonMessageBytes, err = json.Marshal(jsonMessage)
-			if err != nil {
+		if msg[0:1] == "[" {
+			// batch message
+			if err := json.Unmarshal([]byte(msg), &jsonMessages); err != nil {
 				return err
 			}
 		} else {
-			jsonMessageBytes = []byte(msg)
+			// single message
+			var jsonMessage pushMessage
+			if err := json.Unmarshal([]byte(msg), &jsonMessage); err != nil {
+				return err
+			}
+			jsonMessages = append(jsonMessages, jsonMessage)
 		}
 
-		// forward to Clair
-		if err := clair.PushLayer(clairUrl, jsonMessageBytes); err != nil {
-			return err
-		}
+		for _, jsonMessage := range jsonMessages {
+			if jsonMessage.Layer.Headers == nil {
+				jsonMessage.Layer.Headers = make(map[string]string)
+			}
 
-		// send details to SNS
-		details, err := clair.GetLayer(clairUrl, jsonMessage.Layer.Name)
-		if err != nil {
-			return err
-		}
-		if err := queue.SendNotification(snsService, snsTopicArn, details); err != nil {
-			return err
-		}
+			// optional: enrich mesage with authorization token
+			var jsonMessageBytes []byte
+			if tokenManager != nil {
+				token, err := tokenManager.Get("fetch-layer")
+				if err != nil {
+					return err
+				}
+				jsonMessage.Layer.Headers["Authorization"] = "Bearer " + token.Token
+				jsonMessageBytes, err = json.Marshal(jsonMessage)
+				if err != nil {
+					return err
+				}
+			} else {
+				jsonMessageBytes = []byte(msg)
+			}
 
-		log.Printf("Forwarded message %v to Clair", msgid)
+			// forward to Clair
+			if err := clair.PushLayer(clairUrl, jsonMessageBytes); err != nil {
+				return err
+			}
+
+			// send details to SNS
+			details, err := clair.GetLayer(clairUrl, jsonMessage.Layer.Name)
+			if err != nil {
+				return err
+			}
+			if err := queue.SendNotification(snsService, snsTopicArn, details); err != nil {
+				return err
+			}
+
+			log.Printf("Indexed layer %v (%v) from message %v and sent result notification.", jsonMessage.Layer.Name, jsonMessage.Layer.Path, msgid)
+		}
 
 		return nil
 	})
