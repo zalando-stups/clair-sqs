@@ -8,7 +8,7 @@ import (
 	"path"
 )
 
-type tokensManager struct {
+type Manager struct {
 	tokenRequests  []ManagementRequest
 	tokenRefresher *refresher
 	tokenHolder    *holder
@@ -31,9 +31,9 @@ var (
 )
 
 // RefreshPercentageThreshold returns a function that can set the refresh threshold on a tokensManager
-func RefreshPercentageThreshold(threshold float64) func(*tokensManager) error {
-	return func(t *tokensManager) error {
-		if threshold <= 0 || threshold > 1 {
+func RefreshPercentageThreshold(threshold float64) func(*Manager) error {
+	return func(t *Manager) error {
+		if threshold <= 0 || threshold >= 1 || threshold > t.tokenRefresher.warningPercentageThreshold {
 			return ErrInvalidRefreshThreshold
 		}
 		t.tokenRefresher.refreshPercentageThreshold = threshold
@@ -42,8 +42,8 @@ func RefreshPercentageThreshold(threshold float64) func(*tokensManager) error {
 }
 
 // WarningPercentageThreshold returns a function that can set the warning threshold on a tokensManager
-func WarningPercentageThreshold(threshold float64) func(*tokensManager) error {
-	return func(t *tokensManager) error {
+func WarningPercentageThreshold(threshold float64) func(*Manager) error {
+	return func(t *Manager) error {
 		if threshold <= 0 || threshold > 1 || threshold < t.tokenRefresher.refreshPercentageThreshold {
 			return ErrInvalidWarningThreshold
 		}
@@ -55,7 +55,7 @@ func WarningPercentageThreshold(threshold float64) func(*tokensManager) error {
 // Manage is the main function of the token manager. It accepts management requests that will be retrieved from
 // the url parameter and, optionally, configured with a set of options.
 // It loads the initial set of tokens synchronously and will fail if any of those requests also fail
-func Manage(url string, requests []ManagementRequest, options ...func(*tokensManager) error) (*tokensManager, error) {
+func Manage(url string, requests []ManagementRequest, options ...func(*Manager) error) (*Manager, error) {
 	if url == "" {
 		return nil, ErrMissingURL
 	}
@@ -67,7 +67,7 @@ func Manage(url string, requests []ManagementRequest, options ...func(*tokensMan
 	userCredentialsFile := path.Join(os.Getenv("CREDENTIALS_DIR"), "user.json")
 	clientCredentialsFile := path.Join(os.Getenv("CREDENTIALS_DIR"), "client.json")
 	th := newHolder()
-	t := tokensManager{
+	t := Manager{
 		tokenRequests: requests,
 
 		tokenRefresher: newRefresher(
@@ -93,7 +93,7 @@ func Manage(url string, requests []ManagementRequest, options ...func(*tokensMan
 	return &t, nil
 }
 
-func (t *tokensManager) SetOption(options ...func(*tokensManager) error) error {
+func (t *Manager) SetOption(options ...func(*Manager) error) error {
 	for _, opt := range options {
 		if err := opt(t); err != nil {
 			return err
@@ -103,7 +103,7 @@ func (t *tokensManager) SetOption(options ...func(*tokensManager) error) error {
 }
 
 // Get allows you to get a named token from the manager. It checks if a token has expired
-func (t *tokensManager) Get(tokenID string) (*AccessToken, error) {
+func (t *Manager) Get(tokenID string) (*AccessToken, error) {
 	at := t.tokenHolder.get(tokenID)
 	if at == nil {
 		return nil, ErrTokenNotAvailable

@@ -83,7 +83,7 @@ func (r *refresher) doRefreshToken(tr ManagementRequest) error {
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", "go-tokens")
+	req.Header.Set("User-Agent", httpclient.UserAgent)
 	req.Header.Set("Authorization", "Basic "+basicAuth(cc.Id(), cc.Secret()))
 
 	resp, err := r.httpClient.Do(req)
@@ -92,7 +92,7 @@ func (r *refresher) doRefreshToken(tr ManagementRequest) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < http.StatusOK && resp.StatusCode >= http.StatusMultipleChoices {
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		return fmt.Errorf("Error getting token: %d - %v", resp.StatusCode, resp.Body)
 	}
 

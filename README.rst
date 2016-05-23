@@ -23,7 +23,8 @@ The library will make sure that the managed tokens are always valid by refreshin
 Users Guide
 ===========
 
-The library will fetch credentials from JSON files (client.json and user.json) from the folder defined in the `CREDENTIALS_DIR` environment variable.
+The library will fetch credentials from JSON files (client.json and user.json) from the folder defined in
+the ``CREDENTIALS_DIR`` environment variable.
 
 The default threshold for refresh is around 60% of the expiration time.
 
@@ -33,11 +34,13 @@ Example
 .. code-block:: go
 
 	url := "https://example.com/oauth2/access_token"
+
 	// You can manage multiple tokens with different scopes
 	reqs := []tokens.ManagementRequest{
-		tokens.NewRequest("test1", "password", "foo.read"),
-		tokens.NewRequest("test2", "password", "bar.write"),
+		tokens.NewPasswordRequest("test1", "foo.read"),
+		tokens.NewPasswordRequest("test2", "user.email", "user.name"),
 	}
+
 	// Manager creation tries to obtain all tokens synchronously initially
 	tokensManager, err := tokens.Manage(url, reqs)
 	if err != nil {
