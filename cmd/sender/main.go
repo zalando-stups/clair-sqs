@@ -49,7 +49,6 @@ func main() {
 			layers := append(newLayers, oldLayers...)
 
 			if len(layers) == 0 {
-				log.Printf("Got notification %v but without layer updates. (New: %v, Old: %v)", notification.Notification.Name, newLayers, oldLayers)
 				return nil
 			}
 

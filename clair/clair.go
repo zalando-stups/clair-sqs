@@ -138,7 +138,12 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 }
 
 func DeleteNotification(clairUrl, notificationName string) error {
-	_, err := http.NewRequest("DELETE", fmt.Sprintf("%v/v1/notifications/%v", clairUrl, notificationName), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%v/v1/notifications/%v", clairUrl, notificationName), nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
