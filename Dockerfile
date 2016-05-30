@@ -1,9 +1,12 @@
 # use clair native image
 FROM quay.io/coreos/clair:v1.2.2
 
-# add supervisor for our multiprocess container
+# upgrade packages
 RUN apt-get update && \
-    apt-get install -y supervisor && \
+    apt-get dist-upgrade -y
+
+# add supervisor for our multiprocess container
+RUN apt-get install -y supervisor && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
