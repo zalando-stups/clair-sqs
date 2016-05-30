@@ -36,6 +36,9 @@ your layers. The message format is exactly as described in Clair's documentation
 * Each time, a layer was analysed or vulnerabilities might have changed, you will get an SNS
   notification with a JSON message that is the same as
   [GET /v1/layers/:name](https://github.com/coreos/clair/blob/master/api/v1/README.md#get-layersname).
+  The message will be either of type `CLAIR.CONTENTTYPE = (string) "application/json"` for raw JSON
+  messages or `CLAIR.CONTENTTYPE = (string) "application/base64gzip"` for gzipped, base64ed
+  messages that would otherwise be too big.
 
 ## Configuration
 
