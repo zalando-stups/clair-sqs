@@ -96,12 +96,11 @@ func main() {
 					return err
 				}
 				jsonMessage.Layer.Headers["Authorization"] = "Bearer " + token.Token
-				jsonMessageBytes, err = json.Marshal(jsonMessage)
-				if err != nil {
-					return err
-				}
-			} else {
-				jsonMessageBytes = []byte(msg)
+			}
+
+			jsonMessageBytes, err = json.Marshal(jsonMessage)
+			if err != nil {
+				return err
 			}
 
 			// forward to Clair
