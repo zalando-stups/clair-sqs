@@ -88,12 +88,6 @@ func SendNotification(snsService *sns.SNS, snsTopicArn string, json []byte) erro
 			return err
 		}
 
-		if err = gz.Flush(); err != nil {
-			return err
-		}
-		if err = b64.Flush(); err != nil {
-			return err
-		}
 		if err = gz.Close(); err != nil {
 			return err
 		}
