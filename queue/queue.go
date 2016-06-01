@@ -87,10 +87,17 @@ func SendNotification(snsService *sns.SNS, snsTopicArn string, json []byte) erro
 		if _, err = gz.Write(json); err != nil {
 			return err
 		}
+
 		if err = gz.Flush(); err != nil {
 			return err
 		}
+		if err = b64.Flush(); err != nil {
+			return err
+		}
 		if err = gz.Close(); err != nil {
+			return err
+		}
+		if err = b64.Close(); err != nil {
 			return err
 		}
 		message = b.Bytes()
