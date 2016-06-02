@@ -1,0 +1,20 @@
+sudo: false
+
+language: go
+
+go:
+  - 1.6
+
+before_install:
+  - go get ./...
+  - go get github.com/modocache/gover
+
+script:
+  - go vet ./...
+  - go test -v ./...
+  - go fmt ./...
+  - go list -f '{{if len .TestGoFiles}}"go test -coverprofile={{.Dir}}/.coverprofile {{.ImportPath}}"{{end}}' ./... | xargs -i sh -c {}
+  - gover . coverprofile.txt
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -f coverprofile.txt
