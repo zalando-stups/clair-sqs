@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"log"
 )
 
 type errorResponse struct {
@@ -89,10 +90,28 @@ type notificationDetailEnvelope struct {
 	}
 }
 
+func getFromHttp(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("error getting url=%v err=%v", url, err)
+		return []byte{}, err
+	}
+	defer resp.Body.Close()
+
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("error reading bytes from the response of url=%v err=%v", url, err)
+		return []byte{}, err
+	}
+
+	return content, nil
+}
+
 func ProcessNotification(clairUrl, notificationName string, pageProcessor func(newLayers []string, oldLayers []string) error) error {
 	notificationUrl := fmt.Sprintf("%v/v1/notifications/%v", clairUrl, notificationName)
 
 	var page = ""
+	var lastPageProcessorError error
 	for {
 		var pageUrl string
 		if page == "" {
@@ -101,29 +120,26 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 			pageUrl = fmt.Sprintf("%v?limit=%v&page=%v", notificationUrl, 10, page)
 		}
 
-		details, err := http.Get(pageUrl)
-		if err != nil {
-			return err
-		}
-		defer details.Body.Close()
-
-		detailsBytes, err := ioutil.ReadAll(details.Body)
+		detailsBytes, err := getFromHttp(pageUrl)
 		if err != nil {
 			return err
 		}
 
 		if err = tryMessageError(bytes.NewReader(detailsBytes)); err != nil {
+			log.Printf("page contains error message err=%v", err)
 			return err
 		}
 
 		var detailsJson notificationDetailEnvelope
 		if err = json.Unmarshal(detailsBytes, &detailsJson); err != nil {
+			log.Printf("error unmarshaling json err=%v", err)
 			return err
 		}
 
 		// call the notification page processor
 		if err = pageProcessor(detailsJson.Notification.New.LayersIntroducingVulnerability, detailsJson.Notification.Old.LayersIntroducingVulnerability); err != nil {
-			return err
+			log.Printf("error in ProcessNotification. pageProcessor failed. err=%v", err)
+			lastPageProcessorError = err
 		}
 
 		// another page to process?
@@ -132,6 +148,10 @@ func ProcessNotification(clairUrl, notificationName string, pageProcessor func(n
 		} else {
 			break
 		}
+	}
+
+	if lastPageProcessorError != nil {
+		return errors.New("processing of at least one page failed. please check the logs. last error=" + lastPageProcessorError.Error())
 	}
 
 	return nil

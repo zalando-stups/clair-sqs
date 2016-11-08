@@ -56,10 +56,12 @@ func main() {
 				// send the raw notification details to the SNS notifcation
 				details, err := clair.GetLayer(clairUrl, layer)
 				if err != nil {
+					log.Printf("error getting layer clairUrl=%v, layer=%v, err=%v", clairUrl, layer, err)
 					return err
 				}
 
 				if err := queue.SendNotification(svc, snsTopicArn, details); err != nil {
+					log.Printf("error sending notification err=%v", err)
 					return err
 				}
 
