@@ -1,5 +1,5 @@
 # use clair native image
-FROM quay.io/coreos/clair:v1.2.2
+FROM quay.io/coreos/clair:v1.2.6
 
 # upgrade packages
 RUN apt-get update && \
